@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for f in *.c; do
+  gcc -Wall $f -o ${f%.c}
+done
