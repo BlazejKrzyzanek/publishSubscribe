@@ -162,7 +162,7 @@ void sign_up_handling(user* users){
    }
    for(int i =0; i < MAX_USERS; i++){
        if(users[i].pid == -1 && ipc_req[i] != -1){            
-           login_msg lmsg;  // FIXME A co jak uzytkownik sie tutaj rozlaczy?
+           login_msg lmsg; 
            if(msgrcv(ipc_req[i], &lmsg, size(lmsg), 98, IPC_NOWAIT)>0){
                users[i].pid = lmsg.pid;
                users[i].is_logged = 0;
@@ -291,7 +291,7 @@ void reg_msg_sys_handling(int ipc_id, int* types, user* users){ // utworzenie no
                         return;
                     }
                 }
-                else    // Jezeli uzytkownij jest niezalogowany to przerywamy petle
+                else    // Jezeli uzytkownik jest niezalogowany to przerywamy petle
                     break;
             }
         }
@@ -373,7 +373,7 @@ void message_handling(user* usr, user* users){
             if(rmsg.stype > 0 && type_exist){                
                 for (int i=0; i < MAX_USERS; i++){
                     if(users[i].pid != -1 && 
-                            users[i].is_logged &&   // FIXME sprawdzenie czy typ istnieje 
+                            users[i].is_logged && 
                             users[i].pid != rmsg.pid){ // wysylamy do innych zalogowanych uzytkownikow
                         for (int j = 0; j < MAX_TYPES; j++){
                                 int is_blocked = 0;
@@ -451,6 +451,26 @@ void signal_handling(){
     exit(0);
 }
 
+/**>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Obsluga blokady <<<<<<<<<<<<<<<<<<<<<<<<<<<**/
+
+typedef struct block_messege{
+    long type;
+    pid_t pid;
+} Block_msg;
+
+void block_handling(user* usr){
+    Block_msg msg;
+    if(msgrcv((*usr).ipc_id, &msg, size(msg), 12, IPC_NOWAIT) > 0){
+        for(int i = 0; i < MAX_USERS; i++){
+            if((*usr).blocked[i] == -1){
+                (*usr).blocked[i] = msg.pid;
+                break;
+            }
+        }
+    }
+}
+
+
 
 /**>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Glowna petla programu <<<<<<<<<<<<<<<<<<<<<**/
 
@@ -493,6 +513,7 @@ int main(int argc, char* argv[]){
                 reg_msg_handling(users[i].ipc_id, types, users);
                 reg_msg_sys_handling(users[i].ipc_id, types, users);
                 subscribe_handling(&users[i]);
+                block_handling(&users[i]);
                 message_handling(&users[i], users);
                 notify(users[i].ipc_id);
             }

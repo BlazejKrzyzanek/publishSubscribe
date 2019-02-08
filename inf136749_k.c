@@ -25,8 +25,8 @@
                     printf("Nieznana komenda, sproboj ponownie\n"); \
                     continue;
                     
-// TODO przy sygnale zakonczenia wysyla informacje do serwera
-// ktory zamyka kolejki
+
+
 
 
 /** struktury wiadomosci **/
@@ -466,6 +466,31 @@ void receive_asynchr(int ipc_id, int ipc_msg){
 }
 
 
+/**>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Blokowanie uzytkownika <<<<<<<<<<<<<<<<<<<<<<<<<<<<<**/
+
+typedef struct block_message{
+    long type;
+    pid_t pid;
+} Block_msg;
+
+void block(int ipc_id){
+   Block_msg msg;
+   msg.type = 12;
+    while(1){
+        printf("Podaj pid uzytkownika do zablokowania:\n");
+        if(!scanf("%d", &msg.pid)){
+            scanf("%*s");
+            wrong_cmd();
+            continue;
+        }
+        break;
+    }
+    msgsnd(ipc_id, &msg, size(msg), 0);
+}
+    
+
+
+/**>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> MAIN <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<**/
 int main(int argc, char* argv[]){
     int asynchr = 0;
     if(argc > 1)
@@ -497,10 +522,11 @@ int main(int argc, char* argv[]){
         printf("Co chcesz zrobic?\n");
         printf("\t1. Zaloguj sie do systemu\n");
         printf("\t2. Zarejestruj sie na konkretne wiadomosci\n");
-        printf("\t3. Stworz nowy typ wiadomosci\n");
-        printf("\t4. Rozglaszaj wiadomosc\n");
+        printf("\t3. Zablokuj użytkownika\n");
+        printf("\t4. Stworz nowy typ wiadomosci\n");
+        printf("\t5. Rozglaszaj wiadomosc\n");
         if(!asynchr)
-            printf("\t5. Odbierz wiadomosci synchronicznie\n");        
+            printf("\t6. Odbierz wiadomosci synchronicznie\n");        
         printf("\t0. Wyjdz z programu\n");
         if (!scanf("%d", &choice)){
             scanf("%*s");
@@ -516,12 +542,15 @@ int main(int argc, char* argv[]){
                 subscribe(my_ids.ipc_id);
                 break;
             case 3:
-                reg_msg_t(my_ids.ipc_id);
+                block(my_ids.ipc_id);
                 break;
             case 4:
-                send_message(my_ids.ipc_id);
+                reg_msg_t(my_ids.ipc_id);
                 break;
             case 5:
+                send_message(my_ids.ipc_id);
+                break;
+            case 6:
                 if(asynchr){
                     wrong_cmd();
                     break;
