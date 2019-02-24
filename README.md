@@ -7,6 +7,7 @@ za pomoca polecenia chmod -x skrypt
 
 
 plik s.c odpowiada za serwer
+
 plik k.c odpowiada za klienta
 
 
